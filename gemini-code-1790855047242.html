@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jefman Scramble: Warisan Sejarah & Pelestarian Sorong</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        vogelkop: {
+                            dark: '#070b14',
+                            card: '#111827',
+                            accent: '#d97706',
+                            gold: '#fbbf24',
+                            danger: '#ef4444',
+                            success: '#22c55e',
+                            navy: '#1e3a8a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(251, 191, 36, 0.25);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.6); }
+        }
+        .pulse-active { animation: pulseGlow 2s infinite; }
+        @keyframes diceRoll {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(90deg) scale(1.1); }
+            50% { transform: rotate(180deg) scale(0.9); }
+            75% { transform: rotate(270deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        .rolling { animation: diceRoll 0.4s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-vogelkop-dark text-slate-100 h-full flex flex-col justify-between overflow-x-hidden selection:bg-amber-500 selection:text-black">
+
+    <header class="w-full bg-black/90 border-b border-amber-500/30 px-4 py-3 sticky top-0 z-40 flex items-center justify-between shadow-xl">
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl animate-bounce">🏛️</span>
+            <div>
+                <h1 class="font-extrabold text-sm sm:text-base text-amber-400 tracking-wide">Jefman Scramble: Warisan Sejarah & Pelestarian Sorong</h1>
+                <p class="text-[11px] text-slate-400">Sub-bab 3.5 • Evaluasi Pelestarian Peninggalan PD II di Tanah Papua</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="toggleAudio()" id="audioToggleBtn" class="bg-slate-800 hover:bg-slate-700 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-medium border border-amber-500/30 transition flex items-center gap-1.5">
+                <span>🔊</span> <span id="audioLabel">SFX: On</span>
+            </button>
+            <button onclick="openTutorial()" class="bg-amber-600 hover:bg-amber-500 text-black px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                <span>📖</span> Panduan
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-5 flex flex-col justify-center my-auto">
+        
+        <!-- Welcome / Start Screen -->
+        <div id="screen-welcome" class="glass-panel rounded-2xl p-6 sm:p-10 text-center animate-fade-in shadow-2xl max-w-2xl mx-auto border border-amber-500/30">
+            <div class="w-20 h-20 mx-auto bg-amber-950/80 rounded-full flex items-center justify-center text-4xl mb-4 border border-amber-500/50 shadow-inner">
+                🪖
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-amber-400 mb-3">Misi 10 Putaran: Pelestarian Warisan Sejarah PD II</h2>
+            <p class="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto mb-6 leading-relaxed">
+                Jelajahi situs-situs bersejarah Perang Dunia II di Doom, Jefman, Salawati, Sorong, Sausapor, dan Werur. Buat keputusan strategis untuk melindungi bukti fisik peninggalan sejarah dari kerusakan usia, pembangunan, dan pengabaian.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-3">
+                <button onclick="startGame()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold px-8 py-3.5 rounded-xl shadow-lg transform transition active:scale-95 text-sm sm:text-base">
+                    Mulai Edukasi & Misi Pelestarian
+                </button>
+                <button onclick="openTutorial()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold px-6 py-3.5 rounded-xl border border-amber-500/30 transition text-sm sm:text-base">
+                    Panduan Game
+                </button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="screen-game" class="hidden flex flex-col gap-4 animate-fade-in">
+            
+            <!-- Metrics Dashboard -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="glass-panel p-3.5 rounded-xl border border-slate-700 flex items-center justify-between shadow">
+                    <div>
+                        <span class="text-[11px] text-slate-400 block font-medium">Dana Pelestarian</span>
+                        <span id="stat-money" class="text-base sm:text-lg font-bold text-amber-400">600 Poin</span>
+                    </div>
+                    <span class="text-2xl">🏛️</span>
+                </div>
+                <div class="glass-panel p-3.5 rounded-xl border border-slate-700 flex items-center justify-between shadow">
+                    <div>
+                        <span class="text-[11px] text-slate-400 block font-medium">Integritas Situs</span>
+                        <span id="stat-civilian" class="text-base sm:text-lg font-bold text-emerald-400">100%</span>
+                    </div>
+                    <span class="text-2xl">🛡️</span>
+                </div>
+                <div class="glass-panel p-3.5 rounded-xl border border-slate-700 flex items-center justify-between shadow">
+                    <div>
+                        <span class="text-[11px] text-slate-400 block font-medium">Ancaman Kerusakan</span>
+                        <span id="stat-threat" class="text-base sm:text-lg font-bold text-rose-400">15%</span>
+                    </div>
+                    <span class="text-2xl">⚠️</span>
+                </div>
+                <div class="glass-panel p-3.5 rounded-xl border border-slate-700 flex items-center justify-between shadow col-span-2 sm:col-span-1">
+                    <div>
+                        <span class="text-[11px] text-slate-400 block font-medium">Putaran Edukasi</span>
+                        <span id="stat-turn" class="text-base sm:text-lg font-bold text-amber-200">1 / 10</span>
+                    </div>
+                    <span class="text-2xl">📅</span>
+                </div>
+            </div>
+
+            <!-- Board & Action Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                
+                <!-- 10-Checkpoint Visual Track -->
+                <div class="lg:col-span-2 glass-panel p-4 sm:p-6 rounded-2xl flex flex-col justify-between border border-amber-500/30 shadow-2xl">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-700">
+                        <h3 class="font-bold text-sm text-amber-300 flex items-center gap-1.5">
+                            <span>🗺️</span> Peta Wilayah & Ruang Sejarah Papua (PD II)
+                        </h3>
+                        <span id="player-position-label" class="text-xs bg-amber-950 text-amber-300 px-3 py-1 rounded-full border border-amber-600">Posisi: Putaran 1</span>
+                    </div>
+
+                    <!-- 10 Nodes Visual Grid -->
+                    <div id="board-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 my-3">
+                        <!-- Injected by JS -->
+                    </div>
+
+                    <!-- Turn Control & Action -->
+                    <div class="mt-4 pt-3 border-t border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div id="dice-box" class="w-12 h-12 bg-amber-500 text-black font-extrabold text-xl rounded-xl flex items-center justify-center shadow-lg transform transition">
+                                🎲
+                            </div>
+                            <div>
+                                <p id="dice-result-text" class="text-xs text-slate-300">Siap mengambil tindakan pelestarian berikutnya.</p>
+                                <p id="tile-status-info" class="text-xs font-semibold text-amber-400">Fase: Evaluasi Warisan Sejarah</p>
+                            </div>
+                        </div>
+                        <button id="roll-dice-btn" onclick="nextTurnAction()" class="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold px-6 py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                            <span>🚀</span> Lanjut Ke Skenario Pelestarian
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Log & History Panel -->
+                <div class="glass-panel p-4 rounded-2xl flex flex-col justify-between border border-amber-500/30 shadow-2xl">
+                    <div>
+                        <h3 class="font-bold text-sm text-amber-300 mb-2 pb-2 border-b border-slate-700 flex items-center gap-1.5">
+                            <span>📜</span> Catatan Tindakan Pelestarian
+                        </h3>
+                        <div id="log-container" class="space-y-2 text-xs text-slate-300 max-h-[260px] overflow-y-auto pr-1">
+                            <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
+                                🚀 Misi dimulai! Pertahankan Integritas Situs Sejarah dan cegah Ancaman Kerusakan hingga putaran ke-10.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-700 text-center">
+                        <p class="text-[11px] text-amber-400/80">Tips: Mengabaikan 4 Pilar Utama (Dokumentasi, Pendidikan, Keterlibatan Masyarakat, Pemanfaatan Bertanggung Jawab) akan menurunkan integritas situs.</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Ending Screen -->
+        <div id="screen-ending" class="hidden glass-panel rounded-2xl p-6 sm:p-10 text-center animate-fade-in shadow-2xl max-w-xl mx-auto border border-amber-500/40">
+            <div id="ending-icon" class="w-20 h-20 mx-auto bg-amber-950/80 rounded-full flex items-center justify-center text-4xl mb-4 border border-amber-500/50 shadow-inner">
+                🏆
+            </div>
+            <h2 id="ending-title" class="text-2xl sm:text-3xl font-extrabold text-amber-400 mb-3">Hasil Evaluasi Pelestarian Sejarah</h2>
+            <p id="ending-desc" class="text-sm sm:text-base text-slate-300 max-w-md mx-auto mb-6 leading-relaxed">
+                Analisis tindakan pelestarian peninggalan sejarah Perang Dunia II di wilayah Sorong dan sekitarnya.
+            </p>
+            <button onclick="resetGame()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold px-8 py-3.5 rounded-xl shadow-lg transition">
+                Mulai Ulang Misi Evaluasi
+            </button>
+        </div>
+
+    </main>
+
+    <div id="quizModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel rounded-2xl max-w-xl w-full p-6 sm:p-8 relative border border-amber-500/50 animate-fade-in shadow-2xl">
+            <div class="flex items-center justify-between mb-3 pb-2 border-b border-amber-500/30">
+                <span id="quiz-tag" class="text-xs font-bold uppercase tracking-wider bg-amber-950 text-amber-300 px-3 py-1 rounded-full border border-amber-600">Skenario Materi 3.5</span>
+                <span id="quiz-cost-label" class="text-xs font-mono text-amber-400 font-bold">Uji Pemahaman</span>
+            </div>
+            <h3 id="quiz-title" class="text-lg sm:text-xl font-bold text-amber-300 mb-2">Pertanyaan Evaluasi</h3>
+            <p id="quiz-desc" class="text-xs sm:text-sm text-slate-200 mb-5 leading-relaxed">Deskripsi materi...</p>
+            
+            <div id="quiz-options" class="space-y-2.5">
+                <!-- Options Injected Here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="tutorialModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel rounded-2xl max-w-lg w-full p-6 sm:p-8 relative border border-amber-500/50 animate-fade-in shadow-2xl">
+            <div class="flex items-center justify-between mb-4 pb-2 border-b border-amber-500/30">
+                <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+                    <span>📖</span> Panduan Misi Pelestarian Sejarah
+                </h3>
+                <span id="tutorial-step-indicator" class="text-xs font-mono text-slate-400">Langkah 1 dari 4</span>
+            </div>
+            
+            <div id="tutorial-content" class="space-y-3 text-xs sm:text-sm text-slate-200 mb-6 leading-relaxed min-h-[140px]">
+                <!-- Dynamic Content -->
+            </div>
+
+            <div class="flex items-center justify-between pt-3 border-t border-slate-700">
+                <button onclick="prevTutorialStep()" id="tut-prev-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold transition disabled:opacity-40">
+                    Sebelumnya
+                </button>
+                <button onclick="nextTutorialStep()" id="tut-next-btn" class="bg-amber-600 hover:bg-amber-500 text-black px-6 py-2 rounded-xl text-xs font-bold transition">
+                    Selanjutnya ➔
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="w-full bg-black/90 border-t border-amber-500/30 py-3 text-center text-xs text-slate-400">
+        Jefman Scramble • Evaluasi Sub-bab 3.5: Warisan Sejarah dan Upaya Pelestarian PD II di Sorong
+    </footer>
+
+    <script>
+        // Web Audio Synthesizer for SFX
+        let audioEnabled = true;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!audioEnabled) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            let now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.08);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now); osc.stop(now + 0.08);
+            } else if (type === 'success') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(320, now);
+                osc.frequency.setValueAtTime(480, now + 0.1);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'penalty') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(90, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            document.getElementById('audioLabel').innerText = audioEnabled ? 'SFX: On' : 'SFX: Off';
+            playSound('click');
+        }
+
+        // Tutorial Steps
+        let currentTutStep = 1;
+        const tutorialSteps = [
+            {
+                title: "1. Pemahaman Materi Sub-bab 3.5",
+                desc: "Game ini dirancang berdasarkan materi 'Warisan Sejarah dan Upaya Pelestarian'. Anda akan mengevaluasi peninggalan fisik Perang Dunia II di Sorong dan wilayah sekitarnya."
+            },
+            {
+                title: "2. Nilai Sejarah dan Pendidikan",
+                desc: "Bukti fisik seperti bunker, lorong pertahanan, dan lapangan udara tidak hanya bernilai sejarah tetapi juga bernilai pendidikan bagi generasi muda untuk memahami perubahan masyarakat selama perang."
+            },
+            {
+                title: "3. Empat Upaya Pelestarian",
+                desc: "Untuk mencegah kerusakan dari usia, pembangunan, atau kurangnya perhatian, Anda harus menerapkan 4 pilar: Dokumentasi, Pendidikan, Keterlibatan Masyarakat, dan Pemanfaatan Bertanggung Jawab."
+            },
+            {
+                title: "4. Target Evaluasi",
+                desc: "Selesaikan 10 putaran pertanyaan interaktif dengan menjaga Integritas Situs di atas 50% dan tingkat Ancaman Kerusakan di bawah 100%."
+            }
+        ];
+
+        function openTutorial() {
+            playSound('click');
+            currentTutStep = 1;
+            renderTutorialStep();
+            document.getElementById('tutorialModal').classList.remove('hidden');
+        }
+
+        function renderTutorialStep() {
+            document.getElementById('tutorial-step-indicator').innerText = `Langkah ${currentTutStep} dari 4`;
+            const step = tutorialSteps[currentTutStep - 1];
+            document.getElementById('tutorial-content').innerHTML = `
+                <h4 class="font-bold text-amber-300 text-base mb-1">${step.title}</h4>
+                <p class="text-slate-200 leading-relaxed">${step.desc}</p>
+            `;
+            document.getElementById('tut-prev-btn').disabled = (currentTutStep === 1);
+            document.getElementById('tut-next-btn').innerText = (currentTutStep === 4) ? 'Mulai Simulasi ➔' : 'Selanjutnya ➔';
+        }
+
+        function nextTutorialStep() {
+            playSound('click');
+            if (currentTutStep < 4) {
+                currentTutStep++;
+                renderTutorialStep();
+            } else {
+                document.getElementById('tutorialModal').classList.add('hidden');
+                if (!document.getElementById('screen-welcome').classList.contains('hidden')) {
+                    startGame();
+                }
+            }
+        }
+
+        function prevTutorialStep() {
+            playSound('click');
+            if (currentTutStep > 1) {
+                currentTutStep--;
+                renderTutorialStep();
+            }
+        }
+
+        // Game State Database
+        let gameState = {
+            money: 600,
+            civilian: 100,
+            threat: 15,
+            turn: 1,
+            maxTurns: 10
+        };
+
+        const campaignTurns = [
+            {
+                id: 1,
+                name: "Bukti Fisik PD II",
+                title: "Putaran 1: Keberadaan Bukti Fisik Sejarah",
+                desc: "Meskipun banyak perubahan di Sorong setelah PD II tidak lagi terlihat langsung, beberapa bukti fisik masih dapat ditemukan. Apa saja contoh bukti fisik tersebut?",
+                options: [
+                    { text: "Bunker, lorong pertahanan, dan lapangan udara", correct: true, rewardMoney: 80, rewardCivilian: +5, penaltyThreat: -5, feedback: "Tepat! Teks materi menyebutkan bunker, lorong pertahanan, dan lapangan udara sebagai bukti fisik yang masih ada." },
+                    { text: "Candi tua dan prasasti batu", correct: false, rewardMoney: -60, rewardCivilian: -10, penaltyThreat: +15, feedback: "Salah. Bukti peninggalan PD II di Sorong meliputi fasilitas militer modern seperti bunker dan lapangan udara." },
+                    { text: "Istana kerajaan kuno dan benteng kayu", correct: false, rewardMoney: -60, rewardCivilian: -10, penaltyThreat: +15, feedback: "Kurang tepat. Peninggalan PD II berfokus pada struktur pertahanan militer abad ke-20." },
+                    { text: "Hanya dokumen tertulis di museum luar negeri", correct: false, rewardMoney: -80, rewardCivilian: -15, penaltyThreat: +20, feedback: "Keliru! Masih terdapat bukti fisik nyata yang tertinggal di wilayah Sorong." }
+                ]
+            },
+            {
+                id: 2,
+                name: "Nilai Peninggalan",
+                title: "Putaran 2: Arti Penting Peninggalan bagi Generasi Muda",
+                desc: "Mengapa peninggalan Perang Dunia II di Sorong mempunyai nilai yang sangat penting selain nilai sejarah?",
+                options: [
+                    { text: "Mempunyai nilai pendidikan untuk mempelajari perubahan masyarakat selama perang", correct: true, rewardMoney: 90, rewardCivilian: +10, penaltyThreat: -5, feedback: "Benar! Peninggalan tersebut bernilai pendidikan agar generasi muda paham perjalanan sejarah masyarakatnya." },
+                    { text: "Hanya bernilai jual tinggi untuk bahan bangunan bekas", correct: false, rewardMoney: -100, rewardCivilian: -20, penaltyThreat: +25, feedback: "Salah besar! Membongkar peninggalan untuk bahan bangunan merusak warisan sejarah." },
+                    { text: "Berfungsi sebagai tempat penyimpanan barang bekas militer", correct: false, rewardMoney: -70, rewardCivilian: -10, penaltyThreat: +15, feedback: "Kurang tepat. Peninggalan tersebut adalah media belajar dan edukasi sejarah." },
+                    { text: "Menjadi bukti bahwa perang harus diulangi kembali", correct: false, rewardMoney: -120, rewardCivilian: -25, penaltyThreat: +30, feedback: "Sangat keliru. Nilai pentingnya adalah pembelajaran agar menghargai perdamaian." }
+                ]
+            },
+            {
+                id: 3,
+                name: "Penyebab Kerusakan",
+                title: "Putaran 3: Ancaman terhadap Kelestarian Situs",
+                desc: "Berdasarkan materi, faktor apa saja yang dapat menyebabkan peninggalan sejarah di Sorong mengalami kerusakan?",
+                options: [
+                    { text: "Usia, pembangunan, perubahan lingkungan, atau kurangnya perhatian", correct: true, rewardMoney: 100, rewardCivilian: +10, penaltyThreat: -5, feedback: "Sempurna! Faktor-faktor ini adalah ancaman utama keberadaan situs bersejarah." },
+                    { text: "Terlalu sering dibersihkan oleh masyarakat setempat", correct: false, rewardMoney: -50, rewardCivilian: -5, penaltyThreat: +10, feedback: "Salah. Perawatan dan pembersihan justru membantu menjaga integritas situs." },
+                    { text: "Banyaknya penelitian ilmiah dari pihak akademisi", correct: false, rewardMoney: -50, rewardCivilian: -5, penaltyThreat: +5, feedback: "Keliru. Penelitian justru mendukung dokumentasi situs." },
+                    { text: "Penggunaan teknologi digital dalam pemetaan lokasi", correct: false, rewardMoney: -50, rewardCivilian: -5, penaltyThreat: +5, feedback: "Tidak tepat. Teknologi digital membantu proses pencatatan dan pelestarian." }
+                ]
+            },
+            {
+                id: 4,
+                name: "Risiko Tanpa Perawatan",
+                title: "Putaran 4: Dampak Jika Situs Tidak Dirawat",
+                desc: "Apa akibatnya bagi generasi berikutnya jika peninggalan sejarah PD II di Sorong tidak dirawat dengan baik?",
+                options: [
+                    { text: "Hanya mengenal sejarah Sorong melalui tulisan tanpa melihat bukti fisiknya", correct: true, rewardMoney: 110, rewardCivilian: +10, penaltyThreat: -10, feedback: "Tepat sekali! Tanpa bukti fisik, pemahaman sejarah generasi penerus menjadi terbatas." },
+                    { text: "Generasi berikutnya akan otomatis lupa cara membaca dan menulis", correct: false, rewardMoney: -70, rewardCivilian: -15, penaltyThreat: +15, feedback: "Tidak relevan dengan materi yang dibahas." },
+                    { text: "Sejarah Sorong akan langsung dihapus dari kurikulum nasional", correct: false, rewardMoney: -60, rewardCivilian: -10, penaltyThreat: +10, feedback: "Kurang tepat. Yang hilang adalah keberadaan bukti fisik nyatanya." },
+                    { text: "Pembangunan kota Sorong akan terhenti sepenuhnya", correct: false, rewardMoney: -80, rewardCivilian: -10, penaltyThreat: +15, feedback: "Salah. Justru pembangunan tanpa kontrol bisa merusak situs sejarah." }
+                ]
+            },
+            {
+                id: 5,
+                name: "Arti Strategis",
+                title: "Putaran 5: Mengapa Sorong Penting Saat PD II?",
+                desc: "Mengapa Sorong mempunyai arti strategis yang sangat penting bagi pihak Jepang maupun Sekutu pada Perang Dunia II?",
+                options: [
+                    { text: "Letak geografis dan sumber daya yang dimiliki", correct: true, rewardMoney: 120, rewardCivilian: +15, penaltyThreat: -5, feedback: "Benar! Kombinasi posisi geografis dan kekayaan sumber daya menjadikan Sorong lokasi kunci." },
+                    { text: "Karena Sorong adalah pusat industri manufaktur terbesar di Asia", correct: false, rewardMoney: -70, rewardCivilian: -10, penaltyThreat: +15, feedback: "Salah secara historis untuk era Perang Dunia II." },
+                    { text: "Hanya karena permintaan dari komandan militer setempat", correct: false, rewardMoney: -60, rewardCivilian: -10, penaltyThreat: +10, feedback: "Kurang tepat. Ada alasan geografis dan sumber daya yang nyata." },
+                    { text: "Sorong adalah satu-satunya pulau terisolasi tanpa akses laut", correct: false, rewardMoney: -80, rewardCivilian: -15, penaltyThreat: +20, feedback: "Keliru. Sorong memiliki akses maritim dan pesisir yang sangat vital." }
+                ]
+            },
+            {
+                id: 6,
+                name: "Strategi Sekutu",
+                title: "Putaran 6: Dampak Strategi Leapfrogging",
+                desc: "Bagaimana dampak dilaksanakannya strategi leapfrogging oleh Sekutu terhadap posisi Jepang di Sorong?",
+                options: [
+                    { text: "Membuat posisi Jepang di Sorong semakin terisolasi", correct: true, rewardMoney: 130, rewardCivilian: +10, penaltyThreat: -10, feedback: "Tepat! Taktik melompati basis kuat membuat posisi pendudukan terputus dan terisolasi." },
+                    { text: "Membuat kedudukan Jepang semakin kuat dan tidak tergoyahkan", correct: false, rewardMoney: -90, rewardCivilian: -20, penaltyThreat: +25, feedback: "Salah. Leapfrogging justru melumpuhkan jalur pasokan Jepang." },
+                    { text: "Memaksa seluruh warga sipil untuk pindah ke luar Tanah Papua", correct: false, rewardMoney: -80, rewardCivilian: -15, penaltyThreat: +20, feedback: "Tidak sesuai dengan konteks sejarah militer yang dimaksud." },
+                    { text: "Menyebabkan Sekutu menyerah tanpa syarat di Pulau Jefman", correct: false, rewardMoney: -100, rewardCivilian: -20, penaltyThreat: +30, feedback: "Keliru. Sekutu yang memegang kendali atas gerakan maju tersebut." }
+                ]
+            },
+            {
+                id: 7,
+                name: "Ruang Sejarah Papua",
+                title: "Putaran 7: Wilayah Bagian Ruang Sejarah PD II",
+                desc: "Manakah di bawah ini yang merupakan bagian dari ruang sejarah kehadiran PD II di tanah Papua sesuai teks materi?",
+                options: [
+                    { text: "Doom, Jefman, Salawati, Sorong, Sausapor, dan Werur", correct: true, rewardMoney: 140, rewardCivilian: +15, penaltyThreat: -10, feedback: "Sempurna! Keenam wilayah ini ditegaskan sebagai ruang sejarah PD II di Papua." },
+                    { text: "Jakarta, Surabaya, Bandung, Semarang, dan Medan", correct: false, rewardMoney: -80, rewardCivilian: -15, penaltyThreat: +20, feedback: "Salah. Kota-kota tersebut berada di luar wilayah Papua." },
+                    { text: "Hanya Pulau Jawa dan Sumatra", correct: false, rewardMoney: -70, rewardCivilian: -10, penaltyThreat: +15, feedback: "Tentu keliru. Teks secara khusus membahas ruang sejarah Papua." },
+                    { text: "Manado, Makassar, Ambon, dan Ternate saja", correct: false, rewardMoney: -80, rewardCivilian: -10, penaltyThreat: +15, feedback: "Kurang tepat. Teks merujuk pada Doom, Jefman, Salawati, Sorong, Sausapor, dan Werur." }
+                ]
+            },
+            {
+                id: 8,
+                name: "Upaya 1: Dokumentasi",
+                title: "Putaran 8: Pelaksanaan Pilar Dokumentasi",
+                desc: "Bagaimana langkah konkret dalam menjalankan upaya pelestarian pada pilar 'Dokumentasi'?",
+                options: [
+                    { text: "Mencatat kondisi situs melalui foto, tulisan, peta, dan penelitian", correct: true, rewardMoney: 150, rewardCivilian: +15, penaltyThreat: -10, feedback: "Benar! Dokumentasi mencakup pencatatan visual, pemetaan, serta studi penelitian." },
+                    { text: "Membangun pusat perbelanjaan baru di atas lokasi situs", correct: false, rewardMoney: -120, rewardCivilian: -25, penaltyThreat: +30, feedback: "Merusak! Pembangunan di atas situs merusak warisan fisik." },
+                    { text: "Menutup situs agar tidak boleh dilihat oleh siapa pun", correct: false, rewardMoney: -70, rewardCivilian: -10, penaltyThreat: +15, feedback: "Kurang tepat. Informasi situs tetap perlu didokumentasikan dan dipelajari." },
+                    { text: "Menghapus seluruh catatan sejarah lama untuk diganti narasi baru", correct: false, rewardMoney: -100, rewardCivilian: -20, penaltyThreat: +25, feedback: "Salah besar. Dokumentasi bertujuan memelihara keaslian data sejarah." }
+                ]
+            },
+            {
+                id: 9,
+                name: "Upaya 2 & 3: Pendidikan & Masyarakat",
+                title: "Putaran 9: Peran Pendidikan dan Keterlibatan Masyarakat",
+                desc: "Bagaimana pilar Pendidikan dan Keterlibatan Masyarakat diterapkan dalam pelestarian sejarah lokal?",
+                options: [
+                    { text: "Situs jadi media belajar siswa, dan masyarakat ikut menjaga serta merawatnya", correct: true, rewardMoney: 180, rewardCivilian: +20, penaltyThreat: -15, feedback: "Luar biasa! Kombinasi media belajar siswa dan peran aktif warga menjamin kelestarian." },
+                    { text: "Menyerahkan seluruh perawatan hanya kepada peneliti asing", correct: false, rewardMoney: -80, rewardCivilian: -10, penaltyThreat: +15, feedback: "Kurang tepat. Keterlibatan masyarakat lokal sangat vital." },
+                    { text: "Melarang siswa mendatangi situs sejarah karena berbahaya", correct: false, rewardMoney: -70, rewardCivilian: -15, penaltyThreat: +15, feedback: "Keliru. Situs sejarah justru harus dimanfaatkan sebagai sarana pendidikan." },
+                    { text: "Membiarkan masyarakat memindahkan artefak ke rumah masing-masing", correct: false, rewardMoney: -110, rewardCivilian: -20, penaltyThreat: +25, feedback: "Salah! Artefak di situs harus dijaga keaslian lokasinya secara kolektif." }
+                ]
+            },
+            {
+                id: 10,
+                name: "Pemanfaatan Bertanggung Jawab",
+                title: "Putaran 10: Pemanfaatan Bertanggung Jawab",
+                desc: "Bagaimana pilar keempat 'Pemanfaatan Bertanggung Jawab' harus dilaksanakan pada situs bersejarah Sorong?",
+                options: [
+                    { text: "Dikembangkan sebagai wisata sejarah dengan tetap menjaga keaslian dan kelestariannya", correct: true, rewardMoney: 250, rewardCivilian: +25, penaltyThreat: -20, feedback: "Kemenangan Evaluasi! Wisata sejarah berkelanjutan menjaga keaslian nilai peninggalan." },
+                    { text: "Diubah menjadi wahana permainan modern berskala besar", correct: false, rewardMoney: -130, rewardCivilian: -25, penaltyThreat: +35, feedback: "Salah. Komersialisasi berlebihan dapat menghilangkan nilai dan keaslian sejarah." },
+                    { text: "Dijual kepada pihak swasta untuk pemukiman eksklusif", correct: false, rewardMoney: -150, rewardCivilian: -30, penaltyThreat: +40, feedback: "Keliru! Situs sejarah adalah milik publik dan warisan daerah." },
+                    { text: "Dibiarkan terbengkalai tanpa pengelolaan sama sekali", correct: false, rewardMoney: -100, rewardCivilian: -20, penaltyThreat: +25, feedback: "Pengabaian akan menyebabkan situs hancur tergerus waktu." }
+                ]
+            }
+        ];
+
+        function startGame() {
+            playSound('click');
+            gameState = {
+                money: 600,
+                civilian: 100,
+                threat: 15,
+                turn: 1,
+                maxTurns: 10
+            };
+            document.getElementById('screen-welcome').classList.add('hidden');
+            document.getElementById('screen-ending').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            renderBoard();
+            updateUI();
+            addLog(`🎮 Evaluasi Dimulai: Membahas ${campaignTurns[0].name}.`);
+        }
+
+        function updateUI() {
+            document.getElementById('stat-money').innerText = `${gameState.money} Poin`;
+            document.getElementById('stat-civilian').innerText = `${gameState.civilian}%`;
+            document.getElementById('stat-threat').innerText = `${gameState.threat}%`;
+            document.getElementById('stat-turn').innerText = `${gameState.turn} / ${gameState.maxTurns}`;
+            
+            const currentTurnData = campaignTurns[gameState.turn - 1];
+            document.getElementById('player-position-label').innerText = `Posisi: Putaran ${gameState.turn} (${currentTurnData.name})`;
+            document.getElementById('tile-status-info').innerText = `Fase: ${currentTurnData.title}`;
+        }
+
+        function renderBoard() {
+            const grid = document.getElementById('board-grid');
+            grid.innerHTML = '';
+            campaignTurns.forEach(turnObj => {
+                const isCurrent = (turnObj.id === gameState.turn);
+                const isPassed = (turnObj.id < gameState.turn);
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-xl border text-[11px] flex flex-col justify-between transition shadow-md ${
+                    isCurrent ? 'bg-amber-950/90 border-amber-500 ring-2 ring-amber-400 pulse-active' : 
+                    isPassed ? 'bg-emerald-950/70 border-emerald-600 opacity-80' : 'bg-slate-900/90 border-slate-700'
+                }`;
+                div.innerHTML = `
+                    <div class="flex items-center justify-between font-bold mb-1">
+                        <span class="${isCurrent ? 'text-amber-300' : 'text-slate-300'}">P.${turnObj.id} ${turnObj.name}</span>
+                        <span>${isCurrent ? '🚩' : isPassed ? '✅' : '📍'}</span>
+                    </div>
+                    <p class="text-[9px] text-slate-400 line-clamp-1">${turnObj.title}</p>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function addLog(msg) {
+            const container = document.getElementById('log-container');
+            const item = document.createElement('div');
+            item.className = 'p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 animate-fade-in';
+            item.innerHTML = msg;
+            container.prepend(item);
+        }
+
+        function nextTurnAction() {
+            playSound('click');
+            const diceBox = document.getElementById('dice-box');
+            diceBox.classList.add('rolling');
+            
+            setTimeout(() => {
+                diceBox.classList.remove('rolling');
+                const roll = Math.floor(Math.random() * 6) + 1;
+                diceBox.innerText = roll;
+                document.getElementById('dice-result-text').innerText = `Dadu menunjukkan angka ${roll}. Membuka skenario evaluasi...`;
+                
+                const turnData = campaignTurns[gameState.turn - 1];
+                triggerQuizModal(turnData);
+            }, 500);
+        }
+
+        function triggerQuizModal(turnData) {
+            document.getElementById('quiz-tag').innerText = `Putaran ${turnData.id}: ${turnData.name}`;
+            document.getElementById('quiz-cost-label').innerText = `Uji Pemahaman Materi 3.5`;
+            document.getElementById('quiz-title').innerText = turnData.title;
+            document.getElementById('quiz-desc').innerText = turnData.desc;
+
+            const container = document.getElementById('quiz-options');
+            container.innerHTML = '';
+
+            turnData.options.forEach((opt, index) => {
+                const labelLetter = String.fromCharCode(65 + index);
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left p-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs sm:text-sm font-medium transition shadow flex items-center justify-between group';
+                btn.innerHTML = `<span><strong>${labelLetter}.</strong> ${opt.text}</span> <span class="text-amber-400 opacity-0 group-hover:opacity-100 transition">Pilih ➔</span>`;
+                btn.onclick = () => resolveTurnChoice(opt);
+                container.appendChild(btn);
+            });
+
+            document.getElementById('quizModal').classList.remove('hidden');
+        }
+
+        function resolveTurnChoice(opt) {
+            playSound('click');
+            document.getElementById('quizModal').classList.add('hidden');
+
+            gameState.money += opt.rewardMoney;
+            gameState.civilian = Math.max(0, Math.min(100, gameState.civilian + opt.rewardCivilian));
+            gameState.threat = Math.max(0, Math.min(100, gameState.threat + opt.penaltyThreat));
+
+            if (opt.correct) {
+                playSound('success');
+                addLog(`✅ <strong>Putaran ${gameState.turn} Tepat!</strong> ${opt.feedback} <br><span class="text-[10px] text-emerald-400">Bonus: +${opt.rewardMoney} Poin, Integritas +${opt.rewardCivilian}%</span>`);
+            } else {
+                playSound('penalty');
+                addLog(`❌ <strong>Putaran ${gameState.turn} Belum Tepat!</strong> ${opt.feedback} <br><span class="text-[10px] text-rose-400">Dampak: Poin ${opt.rewardMoney}, Integritas ${opt.rewardCivilian}%, Ancaman +${opt.penaltyThreat}%</span>`);
+            }
+
+            if (gameState.money <= 0 || gameState.civilian <= 0 || gameState.threat >= 100) {
+                triggerEnding('gameover');
+                return;
+            }
+
+            if (gameState.turn >= gameState.maxTurns) {
+                triggerEnding('victory');
+            } else {
+                gameState.turn++;
+                updateUI();
+                renderBoard();
+            }
+        }
+
+        function triggerEnding(type) {
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-ending').classList.remove('hidden');
+
+            const iconEl = document.getElementById('ending-icon');
+            const titleEl = document.getElementById('ending-title');
+            const descEl = document.getElementById('ending-desc');
+
+            if (type === 'victory') {
+                iconEl.innerText = '🏆🏛️';
+                titleEl.innerText = 'Evaluasi Selesai: Pelestari Sejarah Unggul!';
+                descEl.innerText = `Luar biasa! Anda berhasil menyelesaikan seluruh 10 putaran evaluasi materi Sub-bab 3.5. Dengan sisa ${gameState.money} Poin Pelestarian dan Integritas Situs ${gameState.civilian}%, Anda terbukti memahami pentingnya menjaga warisan sejarah Perang Dunia II di Sorong dan Tanah Papua!`;
+            } else {
+                iconEl.innerText = '⚠️🍂';
+                titleEl.innerText = 'Evaluasi Gagal: Degradasi Situs Sejarah';
+                descEl.innerText = `Simulasi berakhir karena Poin Pelestarian habis (${gameState.money}), Integritas Situs runtuh (${gameState.civilian}%), atau Ancaman Kerusakan mencapai batas maksimal (${gameState.threat}%). Pelajari kembali 4 upaya pelestarian (Dokumentasi, Pendidikan, Keterlibatan Masyarakat, Pemanfaatan Bertanggung Jawab) dan coba lagi!`;
+            }
+        }
+
+        function resetGame() {
+            playSound('click');
+            document.getElementById('screen-ending').classList.add('hidden');
+            document.getElementById('screen-welcome').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
